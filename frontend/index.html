@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcharyaConnect</title>
+    <style>
+        /* CSS from style.css */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            max-height: 700px;
+        }
+
+        .chat-header {
+            background-color: #4A90E2; /* A nice blue */
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .chat-log {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #eee;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.4;
+            word-wrap: break-word; /* Ensure long words break */
+            overflow-wrap: break-word; /* More robust word breaking */
+        }
+
+        .message.user {
+            background-color: #DCF8C6; /* WhatsApp-like user message */
+            color: #333;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot {
+            background-color: #E9E9EB; /* Lighter gray for bot */
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.error {
+            background-color: #ffdddd;
+            color: #d8000c;
+            border: 1px solid #d8000c;
+        }
+
+        .message.loading {
+            font-style: italic;
+            color: #777;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+
+        #chat-form {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+
+        #user-question {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+
+        #file-upload {
+            display: none; /* Hide the actual file input */
+        }
+
+        .file-upload-button {
+            padding: 8px 12px;
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.2em; /* Make icon slightly larger */
+            margin-right: 5px;
+            transition: background-color 0.2s;
+            display: flex; /* For centering the icon */
+            align-items: center; /* For centering the icon */
+            justify-content: center; /* For centering the icon */
+        }
+        .file-upload-button:hover {
+            background-color: #357ABD;
+        }
+
+        #file-name-display {
+            font-size: 0.8em;
+            color: #555;
+            margin-right: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px; /* Adjust as needed */
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4CAF50; /* Green send button */
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+
+        #send-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Scrollbar styling */
+        .chat-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-log::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-log::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .chat-log::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Connect AI</h2>
+        </div>
+        <div id="chat-log" class="chat-log">
+            <!-- Chat messages will appear here -->
+            <div class="message bot">Hello! How can I help you today? You can also upload a file.</div>
+        </div>
+        <div class="chat-input-area">
+            <form id="chat-form">
+                <input type="text" id="user-question" placeholder="Type your question..." > <!-- Removed 'required' to allow file-only submissions -->
+                <label for="file-upload" class="file-upload-button" title="Upload File">📎</label>
+                <input type="file" id="file-upload" accept=".txt,.pdf,.png,.jpg,.jpeg,.gif,.docx">
+                <span id="file-name-display"></span>
+                <button type="submit" id="send-button">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript from script.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatLog = document.getElementById('chat-log');
+            const chatForm = document.getElementById('chat-form');
+            const userQuestionInput = document.getElementById('user-question');
+            const fileUploadInput = document.getElementById('file-upload');
+            const fileNameDisplay = document.getElementById('file-name-display');
+            const sendButton = document.getElementById('send-button');
+
+            const BACKEND_URL = 'http://127.0.0.1:5000/chat'; // Define backend URL
+
+            // Display file name when selected
+            fileUploadInput.addEventListener('change', () => {
+                if (fileUploadInput.files.length > 0) {
+                    fileNameDisplay.textContent = fileUploadInput.files[0].name;
+                } else {
+                    fileNameDisplay.textContent = '';
+                }
+            });
+
+            chatForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const question = userQuestionInput.value.trim();
+                const file = fileUploadInput.files[0];
+
+                if (!question && !file) {
+                    addMessageToLog('Please type a question or upload a file.', 'error');
+                    return;
+                }
+                
+                // Display user's message or file upload indication
+                if (question) {
+                    addMessageToLog(question, 'user');
+                } else if (file) {
+                    // If only a file is uploaded, the backend will formulate a default question.
+                    // We can show a generic message here.
+                    addMessageToLog(`Processing file: ${file.name}...`, 'user');
+                }
+
+
+                // Show loading indicator
+                const loadingMessage = addMessageToLog('Bot is thinking...', 'loading');
+                sendButton.disabled = true;
+                userQuestionInput.disabled = true;
+                fileUploadInput.disabled = true;
+
+
+                const formData = new FormData();
+                // Backend expects 'question'. If empty, send empty or a placeholder if needed.
+                // The backend logic for default question based on filename is better.
+                formData.append('question', question); 
+                if (file) {
+                    formData.append('file', file);
+                }
+
+                try {
+                    const response = await fetch(BACKEND_URL, {
+                        method: 'POST',
+                        body: formData // FormData handles multipart/form-data encoding
+                    });
+
+                    // Remove loading indicator
+                    if (loadingMessage && chatLog.contains(loadingMessage)) {
+                        loadingMessage.remove();
+                    }
+
+                    if (!response.ok) {
+                        let errorText = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorText = errorData.error || errorText;
+                        } catch (e) {
+                            // If response is not JSON or fails to parse
+                            errorText = await response.text() || errorText;
+                        }
+                        throw new Error(errorText);
+                    }
+
+                    const data = await response.json();
+                    if (data.answer) {
+                        addMessageToLog(data.answer, 'bot');
+                    } else if (data.error) { // Handle specific error from backend JSON
+                        addMessageToLog(`Bot Error: ${data.error}`, 'error');
+                    } else {
+                        addMessageToLog("Received an empty response from the bot.", 'error');
+                    }
+
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Ensure loading message is removed if it still exists and an error occurs
+                    if (loadingMessage && chatLog.contains(loadingMessage)) {
+                        loadingMessage.remove();
+                    }
+                    addMessageToLog(`Error: ${error.message}`, 'error');
+                } finally {
+                    userQuestionInput.value = '';
+                    fileUploadInput.value = null; // Reset file input
+                    fileNameDisplay.textContent = '';
+                    sendButton.disabled = false;
+                    userQuestionInput.disabled = false;
+                    fileUploadInput.disabled = false;
+                    userQuestionInput.focus();
+                }
+            });
+
+            function addMessageToLog(message, sender) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', sender);
+                
+                // Basic Markdown-like formatting for newlines (replace \n with <br>)
+                // For more complex markdown, you'd use a library like Showdown.js or Marked.js
+                // Safely set innerHTML after escaping potentially harmful content if message were user-input directly
+                // For bot messages from Gemini, it's generally okay, but be mindful of XSS if the source is untrusted.
+                // Here, we assume Gemini's output is safe enough for this replacement.
+                messageElement.innerHTML = message.replace(/\n/g, '<br>');
+                
+                chatLog.appendChild(messageElement);
+                chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+                return messageElement; // Return for potential modification (e.g., removing loading)
+            }
+        });
+    </script>
+</body>
+</html>
