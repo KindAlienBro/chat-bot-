@@ -3,215 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcharyaConnect</title>
+    <title>AcharyaConnect AI Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS from style.css */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f7f6;
+        :root {
+            --primary-color: #0052cc; /* Professional Blue */
+            --secondary-color: #0065ff;
+            --accent-color: #4c9aff;
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-color: #212529;
+            --text-muted-color: #6c757d;
+            --border-color: #dee2e6;
+            --user-message-bg: #e7f3ff; /* Lighter blue for user */
+            --bot-message-bg: #f1f3f5;   /* Light gray for bot */
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+            --error-border: #f5c6cb;
+            --button-font-color: #ffffff;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+            --accent-color-rgb: 76, 154, 255; /* For box-shadow focus */
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', 'Arial', sans-serif;
+            background-color: var(--background-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         .chat-container {
-            width: 90%;
-            max-width: 600px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 500px;
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             display: flex;
             flex-direction: column;
-            height: 80vh;
-            max-height: 700px;
+            height: 85vh;
+            max-height: 650px;
+            overflow: hidden;
         }
 
         .chat-header {
-            background-color: #4A90E2; /* A nice blue */
-            color: white;
-            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--button-font-color);
+            padding: 16px 20px;
             text-align: center;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
 
         .chat-header h2 {
             margin: 0;
-            font-size: 1.2em;
+            font-size: 1.25em;
+            font-weight: 500;
         }
 
         .chat-log {
             flex-grow: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
-            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .message {
-            margin-bottom: 15px;
             padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 75%;
-            line-height: 1.4;
-            word-wrap: break-word; /* Ensure long words break */
-            overflow-wrap: break-word; /* More robust word breaking */
+            border-radius: 16px;
+            max-width: 80%;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
-            background-color: #DCF8C6; /* WhatsApp-like user message */
-            color: #333;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
+            background-color: var(--user-message-bg);
+            color: var(--primary-color);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
         }
 
         .message.bot {
-            background-color: #E9E9EB; /* Lighter gray for bot */
-            color: #333;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
+            background-color: var(--bot-message-bg);
+            color: var(--text-color);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message.bot strong, .message.bot b { font-weight: 600; color: var(--primary-color); }
+        .message.bot em, .message.bot i { font-style: italic; }
+        .message.bot code {
+            background-color: #e0e0e0; /* Slightly darker for inline code */
+            padding: 0.2em 0.4em;
+            margin: 0 0.1em;
+            font-size: 85%;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            color: #c7254e; /* Bootstrap-like color for inline code */
+        }
+        .message.bot pre {
+            background-color: #f0f0f0; /* Light background for code blocks */
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto; /* Allow horizontal scrolling for long code lines */
+            margin: 10px 0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .message.bot pre code {
+            padding: 0;
+            background-color: transparent;
+            color: inherit; /* Inherit color from pre for consistency */
+            font-size: 90%; /* Slightly larger for readability in blocks */
+            border: none;
+            box-shadow: none;
         }
 
         .message.error {
-            background-color: #ffdddd;
-            color: #d8000c;
-            border: 1px solid #d8000c;
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-border);
+            align-self: stretch;
+            max-width: 100%;
+            border-radius: 8px; /* Consistent radius */
         }
 
         .message.loading {
             font-style: italic;
-            color: #777;
+            color: var(--text-muted-color);
+            align-self: flex-start;
+            background-color: transparent;
+            box-shadow: none;
+        }
+        .message.loading::after {
+            content: ' .';
+            animation: dots 1.5s steps(3, end) infinite;
+            display: inline-block; /* Ensure animation displays correctly */
+        }
+        @keyframes dots {
+            0%, 20% { content: ' .'; }
+            40% { content: ' ..'; }
+            60%, 100% { content: ' ...'; }
         }
 
         .chat-input-area {
             display: flex;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            background-color: #f9f9f9;
+            padding: 12px 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            flex-shrink: 0;
+            align-items: flex-end;
         }
 
         #chat-form {
             display: flex;
             width: 100%;
             align-items: center;
+            gap: 8px;
         }
 
-        #user-question {
+        #user-question { /* Textarea styles */
             flex-grow: 1;
             padding: 10px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 20px;
-            margin-right: 10px;
-            font-size: 1em;
+            font-size: 0.95em;
+            line-height: 1.4;
+            resize: none;
+            min-height: 40px;
+            max-height: 100px; /* e.g., 3-4 lines */
+            overflow-y: auto;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #fff; /* Ensure it's white */
+        }
+        #user-question:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.2);
+        }
+        #user-question::placeholder {
+            color: var(--text-muted-color);
         }
 
+
         #file-upload {
-            display: none; /* Hide the actual file input */
+            display: none;
+        }
+
+        .file-upload-button, #send-button {
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+        }
+        .file-upload-button svg, #send-button svg {
+            width: 18px; /* Consistent icon size */
+            height: 18px;
+            fill: currentColor;
         }
 
         .file-upload-button {
-            padding: 8px 12px;
-            background-color: #4A90E2;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1.2em; /* Make icon slightly larger */
-            margin-right: 5px;
-            transition: background-color 0.2s;
-            display: flex; /* For centering the icon */
-            align-items: center; /* For centering the icon */
-            justify-content: center; /* For centering the icon */
+            background-color: var(--bot-message-bg); /* Consistent with bot messages */
+            color: var(--primary-color);
         }
         .file-upload-button:hover {
-            background-color: #357ABD;
+            background-color: #e0e0e0;
         }
 
         #file-name-display {
             font-size: 0.8em;
-            color: #555;
-            margin-right: 10px;
+            color: var(--text-muted-color);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100px; /* Adjust as needed */
+            max-width: 100px; /* Increased slightly */
+            flex-shrink: 1;
+            padding: 0 5px;
+            text-align: left; /* Align left for better readability */
+            line-height: 40px; /* Align with button height */
         }
 
         #send-button {
-            padding: 10px 20px;
-            background-color: #4CAF50; /* Green send button */
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s;
+            background-color: var(--primary-color);
+            color: var(--button-font-color);
+        }
+        #send-button:hover {
+            background-color: var(--secondary-color);
+        }
+        #send-button:active, .file-upload-button:active {
+            transform: scale(0.92);
+        }
+        #send-button:disabled {
+            background-color: #b0c4de; /* Lighter, disabled blue */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        #send-button:disabled svg {
+            opacity: 0.7;
         }
 
-        #send-button:hover {
-            background-color: #45a049;
-        }
 
         /* Scrollbar styling */
         .chat-log::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
-
         .chat-log::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+            background: transparent; /* Or var(--background-color) */
         }
-
         .chat-log::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 10px;
+            background: #ced4da;
+            border-radius: 3px;
+        }
+        .chat-log::-webkit-scrollbar-thumb:hover {
+            background: #adb5bd;
         }
 
-        .chat-log::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
-        }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h2>Connect AI</h2>
+            <h2>AI Assistant</h2>
         </div>
         <div id="chat-log" class="chat-log">
-            <!-- Chat messages will appear here -->
-            <div class="message bot">Hello! How can I help you today? You can also upload a file.</div>
+            <div class="message bot">Hello! How can I assist you today? Feel free to ask a question or upload a document (PDF, DOCX, TXT, PNG, JPG).</div>
         </div>
         <div class="chat-input-area">
             <form id="chat-form">
-                <input type="text" id="user-question" placeholder="Type your question..." > <!-- Removed 'required' to allow file-only submissions -->
-                <label for="file-upload" class="file-upload-button" title="Upload File">📎</label>
+                <textarea id="user-question" placeholder="Type your question..." rows="1"></textarea>
+                <label for="file-upload" class="file-upload-button" title="Upload File">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                        <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
+                    </svg>
+                </label>
                 <input type="file" id="file-upload" accept=".txt,.pdf,.png,.jpg,.jpeg,.gif,.docx">
                 <span id="file-name-display"></span>
-                <button type="submit" id="send-button">Send</button>
+                <button type="submit" id="send-button" title="Send">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l3.742 5.868L15.07 1.146 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+                    </svg>
+                </button>
             </form>
         </div>
     </div>
 
     <script>
-        // JavaScript from script.js
         document.addEventListener('DOMContentLoaded', () => {
             const chatLog = document.getElementById('chat-log');
             const chatForm = document.getElementById('chat-form');
-            const userQuestionInput = document.getElementById('user-question');
+            const userQuestionInput = document.getElementById('user-question'); // Now a textarea
             const fileUploadInput = document.getElementById('file-upload');
             const fileNameDisplay = document.getElementById('file-name-display');
             const sendButton = document.getElementById('send-button');
 
-            const BACKEND_URL = 'http://127.0.0.1:5000/chat'; // Define backend URL
+            // --- CRITICAL: Point to your deployed Render backend API ---
+            const BACKEND_URL = 'https://chat-bot-744w.onrender.com/chat';
 
-            // Display file name when selected
             fileUploadInput.addEventListener('change', () => {
                 if (fileUploadInput.files.length > 0) {
                     fileNameDisplay.textContent = fileUploadInput.files[0].name;
                 } else {
                     fileNameDisplay.textContent = '';
+                }
+            });
+
+            // Auto-resize textarea based on content
+            userQuestionInput.addEventListener('input', () => {
+                userQuestionInput.style.height = 'auto'; // Reset height to shrink if text is deleted
+                let scrollHeight = userQuestionInput.scrollHeight;
+                const maxHeight = parseInt(getComputedStyle(userQuestionInput).maxHeight, 10) || 100;
+                userQuestionInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+            });
+
+            // Handle Enter to send, Shift+Enter for new line in textarea
+            userQuestionInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
                 }
             });
 
@@ -221,30 +355,27 @@
                 const file = fileUploadInput.files[0];
 
                 if (!question && !file) {
-                    addMessageToLog('Please type a question or upload a file.', 'error');
+                    addMessageToLog('Please type a question or upload a file.', 'error', true);
                     return;
                 }
                 
-                // Display user's message or file upload indication
-                if (question) {
-                    addMessageToLog(question, 'user');
-                } else if (file) {
-                    // If only a file is uploaded, the backend will formulate a default question.
-                    // We can show a generic message here.
-                    addMessageToLog(`Processing file: ${file.name}...`, 'user');
+                let userMessageContent = "";
+                if (question) userMessageContent += question;
+                if (file) userMessageContent += (question ? `\n` : '') + `(File: ${file.name})`;
+                
+                if (userMessageContent) { // Only add user message if there's content
+                    addMessageToLog(userMessageContent, 'user', true); // Apply markdown to user message for consistency if desired
                 }
 
-
-                // Show loading indicator
-                const loadingMessage = addMessageToLog('Bot is thinking...', 'loading');
+                const loadingMessage = addMessageToLog('AI is thinking', 'loading');
                 sendButton.disabled = true;
                 userQuestionInput.disabled = true;
                 fileUploadInput.disabled = true;
+                const originalSendButtonContent = sendButton.innerHTML; // Store original SVG
+                sendButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><style>.spinner_qM83{animation:spinner_8HQG 1.05s infinite}.spinner_oXPr{animation-delay:.1s}.spinner_ZTLf{animation-delay:.2s}@keyframes spinner_8HQG{0%,57.14%{animation-timing-function:cubic-bezier(0.33,.66,.66,1);transform:translate(0)}28.57%{animation-timing-function:cubic-bezier(0.33,0,.66,.33);transform:translateY(-6px)}100%{transform:translate(0)}}</style><circle class="spinner_qM83" cx="4" cy="12" r="3"/><circle class="spinner_qM83 spinner_oXPr" cx="12" cy="12" r="3"/><circle class="spinner_qM83 spinner_ZTLf" cx="20" cy="12" r="3"/></svg>';
 
 
                 const formData = new FormData();
-                // Backend expects 'question'. If empty, send empty or a placeholder if needed.
-                // The backend logic for default question based on filename is better.
                 formData.append('question', question); 
                 if (file) {
                     formData.append('file', file);
@@ -253,69 +384,100 @@
                 try {
                     const response = await fetch(BACKEND_URL, {
                         method: 'POST',
-                        body: formData // FormData handles multipart/form-data encoding
+                        body: formData
                     });
 
-                    // Remove loading indicator
                     if (loadingMessage && chatLog.contains(loadingMessage)) {
                         loadingMessage.remove();
                     }
 
                     if (!response.ok) {
-                        let errorText = `HTTP error! status: ${response.status}`;
+                        let errorText = `Error: ${response.status} ${response.statusText}`;
                         try {
                             const errorData = await response.json();
-                            errorText = errorData.error || errorText;
+                            errorText = errorData.error || errorData.message || errorText;
                         } catch (e) {
-                            // If response is not JSON or fails to parse
-                            errorText = await response.text() || errorText;
+                            const plainErrorText = await response.text();
+                            if (plainErrorText) errorText = plainErrorText.substring(0, 200);
                         }
                         throw new Error(errorText);
                     }
 
                     const data = await response.json();
                     if (data.answer) {
-                        addMessageToLog(data.answer, 'bot');
-                    } else if (data.error) { // Handle specific error from backend JSON
-                        addMessageToLog(`Bot Error: ${data.error}`, 'error');
+                        addMessageToLog(data.answer, 'bot', true);
+                    } else if (data.error) {
+                        addMessageToLog(`Bot Error: ${data.error}`, 'error', true);
                     } else {
-                        addMessageToLog("Received an empty response from the bot.", 'error');
+                        addMessageToLog("Received an unexpected response from the bot.", 'error', true);
                     }
 
-
                 } catch (error) {
-                    console.error('Error:', error);
-                    // Ensure loading message is removed if it still exists and an error occurs
+                    console.error('Fetch Error:', error);
                     if (loadingMessage && chatLog.contains(loadingMessage)) {
                         loadingMessage.remove();
                     }
-                    addMessageToLog(`Error: ${error.message}`, 'error');
+                    addMessageToLog(error.message || "Failed to connect to the AI. Please try again.", 'error', true);
                 } finally {
                     userQuestionInput.value = '';
-                    fileUploadInput.value = null; // Reset file input
+                    userQuestionInput.style.height = 'auto'; // Reset textarea height
+                    fileUploadInput.value = null; 
                     fileNameDisplay.textContent = '';
                     sendButton.disabled = false;
                     userQuestionInput.disabled = false;
                     fileUploadInput.disabled = false;
+                    sendButton.innerHTML = originalSendButtonContent; // Restore original SVG
                     userQuestionInput.focus();
                 }
             });
 
-            function addMessageToLog(message, sender) {
+            function escapeHTML(str) {
+                if (typeof str !== 'string') return String(str); // Handle non-strings gracefully
+                return str.replace(/[&<>"']/g, function (match) {
+                    return {
+                        '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
+                    }[match];
+                });
+            }
+            
+            function basicMarkdownToHtml(text) {
+                if (typeof text !== 'string') text = String(text); // Ensure text is a string
+                let html = escapeHTML(text);
+                // Bold: **text** or __text__
+                html = html.replace(/\*\*(.*?)\*\*|__(.*?)__/g, '<strong>$1$2</strong>');
+                // Italics: *text* or _text_
+                html = html.replace(/\*(.*?)\*|_(.*?)_/g, '<em>$1$2</em>');
+                // Code blocks: ```text``` (simple version, doesn't handle language)
+                html = html.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+                    const escapedCode = escapeHTML(codeContent.trim()); // Trim whitespace before escaping
+                    return `<pre><code>${escapedCode}</code></pre>`;
+                });
+                // Inline code: `text`
+                html = html.replace(/`([^`]+?)`/g, '<code>$1</code>'); // Ensure it captures content
+                // Newlines (important: do this after code blocks to preserve newlines within them)
+                html = html.replace(/(?<!<pre><code>[^]*?)(\r\n|\r|\n)(?![^]*?<\/code><\/pre>)/g, '<br>');
+                return html;
+            }
+
+            function addMessageToLog(message, sender, applyMarkdown = false) {
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('message', sender);
                 
-                // Basic Markdown-like formatting for newlines (replace \n with <br>)
-                // For more complex markdown, you'd use a library like Showdown.js or Marked.js
-                // Safely set innerHTML after escaping potentially harmful content if message were user-input directly
-                // For bot messages from Gemini, it's generally okay, but be mindful of XSS if the source is untrusted.
-                // Here, we assume Gemini's output is safe enough for this replacement.
-                messageElement.innerHTML = message.replace(/\n/g, '<br>');
+                if (applyMarkdown) { // Apply markdown for bot and user (for file names with newlines etc.)
+                    messageElement.innerHTML = basicMarkdownToHtml(message);
+                } else {
+                    messageElement.textContent = message;
+                }
                 
                 chatLog.appendChild(messageElement);
-                chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
-                return messageElement; // Return for potential modification (e.g., removing loading)
+                setTimeout(() => {
+                     chatLog.scrollTop = chatLog.scrollHeight;
+                }, 0);
+                return messageElement;
             }
+
+            // Initial focus
+            userQuestionInput.focus();
         });
     </script>
 </body>
