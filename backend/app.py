@@ -193,6 +193,24 @@ def serve_static_files(filename):
     return send_from_directory(app.static_folder, filename)
 
 
+# if __name__ == '__main__':
+#     # This is for local development only. Gunicorn will be used on Render.
+#     app.run(debug=True, port=5000)
+
 if __name__ == '__main__':
-    # This is for local development only. Gunicorn will be used on Render.
-    app.run(debug=True, port=5000)
+    import sys
+
+    # Default port
+    default_port = 5000
+
+    # Try getting port from environment variable or command-line argument
+    port = int(os.getenv("PORT", default_port))
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            print(f"Invalid port argument '{sys.argv[1]}', falling back to port {port}")
+
+    # Run the Flask app
+    app.run(debug=True, port=port, host='0.0.0.0')  # host='0.0.0.0' allows external access if needed
+
