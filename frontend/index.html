@@ -431,14 +431,19 @@
                 }
             });
 
-            function escapeHTML(str) {
-                if (typeof str !== 'string') return String(str); // Handle non-strings gracefully
-                return str.replace(/[&<>"']/g, function (match) {
-                    return {
-                        '&': '&', '<': '<', '>': '>', '"': '"', "'": '''
-                    }[match];
-                });
-            }
+           function escapeHTML(str) {
+    if (typeof str !== 'string') return String(str); // Handle non-strings gracefully
+    return str.replace(/[&<>"']/g, function (match) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[match];
+    });
+}
+
             
             function basicMarkdownToHtml(text) {
                 if (typeof text !== 'string') text = String(text); // Ensure text is a string
